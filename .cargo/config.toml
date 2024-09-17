@@ -1,0 +1,22 @@
+[build]
+target = "xtensa-esp32-espidf"
+
+[target.xtensa-esp32-espidf]
+linker = "ldproxy"
+runner = "espflash flash --monitor --port /dev/serial/by-id/usb-FTDI_Dual_RS232-HS-if01-port0 --no-stub"
+# Extending time_t for ESP IDF 5: https://github.com/esp-rs/rust/issues/110
+rustflags = [
+    "--cfg",
+    "espidf_time64",
+    "--cfg",
+    "mio_unsupported_force_poll_poll",
+]
+
+[unstable]
+build-std = ["std", "panic_abort"]
+build-std-features = ["panic_immediate_abort"]
+
+[env]
+MCU = "esp32"
+# Note: this variable is not used by the pio builder (`cargo build --features pio`)
+ESP_IDF_VERSION = "v5.2.2"

@@ -1,0 +1,45 @@
+cargo-features = ["trim-paths"]
+[package]
+name = "llvm-sign-extension"
+version = "0.1.0"
+authors = ["Jonathan Bastien-Filiatrault <joe@x2a.org>"]
+edition = "2021"
+resolver = "2"
+rust-version = "1.80.0"
+publish = false
+
+[profile.release]
+debug = true
+opt-level = "z"
+codegen-units = 1
+lto = "thin"
+panic = "abort"
+trim-paths = "macro"
+
+[profile.dev]
+debug = true
+opt-level = "z"
+panic = "abort"
+trim-paths = "macro"
+overflow-checks = false
+debug-assertions = false
+codegen-units = 1
+
+[dependencies]
+log = { version = "0.4", default-features = false }
+esp-idf-svc = { git="https://github.com/esp-rs/esp-idf-svc.git", branch="master", default-features = false, features = [
+    "std",
+    "alloc",
+    "binstart",
+    "critical-section",
+    "embassy-time-driver",
+] }
+smol = "2.0.0"
+anyhow = "1.0.81"
+futures-lite = "2.3.0"
+libc = "0.2"
+async-oneshot = "0.5.9"
+thiserror = "1.0.59"
+
+[build-dependencies]
+embuild = "0.32"

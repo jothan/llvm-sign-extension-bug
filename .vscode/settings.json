@@ -1,0 +1,40 @@
+{
+    "rust-analyzer.cargo.target": "xtensa-esp32-espidf",
+    "rust-analyzer.cargo.allTargets": false,
+    "files.insertFinalNewline": true,
+    "tomato": {
+        "buildType": "debug",
+        "targetDir": "${workspaceFolder}/target/xtensa-esp32-espidf/${config:tomato.buildType}",
+        "elf": "${config:tomato.targetDir}/llvm-sign-extension",
+        "gdbPath": "${userHome}/.espressif/tools/xtensa-esp-elf-gdb/12.1_20231023/xtensa-esp-elf-gdb/bin/xtensa-esp32-elf-gdb",
+        "openocdScripts": "${userHome}/.espressif/tools/openocd-esp32/v0.12.0-esp32-20230921/openocd-esp32/share/openocd/scripts",
+        "openocd": "${userHome}/.espressif/tools/openocd-esp32/v0.12.0-esp32-20230921/openocd-esp32/bin/openocd",
+        "openocdArgs": "-f interface/ftdi/esp32_devkitj_v1.cfg -f interface/ftdi/esp32_devkitj_v1.cfg -f target/esp32.cfg -c \"init; halt; esp32 appimage_offset 0x10000\"",
+    },
+    "cSpell.enabledLanguageIds": [
+        "!rust"
+    ],
+    "cSpell.enableFiletypes": [
+        "!plaintext",
+    ],
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#e63700",
+        "activityBar.background": "#e63700",
+        "activityBar.foreground": "#e7e7e7",
+        "activityBar.inactiveForeground": "#e7e7e799",
+        "activityBarBadge.background": "#00df35",
+        "activityBarBadge.foreground": "#15202b",
+        "commandCenter.border": "#e7e7e799",
+        "sash.hoverBorder": "#e63700",
+        "statusBar.background": "#b32b00",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#e63700",
+        "statusBarItem.remoteBackground": "#b32b00",
+        "statusBarItem.remoteForeground": "#e7e7e7",
+        "titleBar.activeBackground": "#b32b00",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.inactiveBackground": "#b32b0099",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#b32b00",
+}

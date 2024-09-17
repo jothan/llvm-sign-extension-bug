@@ -1,0 +1,92 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "openocd",
+            "type": "shell",
+            "isBackground": true,
+            "options": {
+                "env": {
+                    "OPENOCD_SCRIPTS": "${config:tomato.openocdScripts}",
+                }
+            },
+            "command": "${config:tomato.openocd} ${config:tomato.openocdArgs}",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "type": "cargo",
+            "command": "build",
+            "args": [
+                "--release"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build"
+            },
+            "label": "rust: cargo build"
+        },
+        {
+            "command": "cargo",
+            "args": [
+                "flash",
+                "--connect-under-reset",
+                "--chip=esp32-3.3v",
+                "--idf-partition-table",
+                "${workspaceFolder}/partitions.csv",
+                "--idf-bootloader",
+                "${config:tomato.targetDir}/bootloader.bin",
+                "--speed",
+                "20000"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "label": "rust: cargo flash",
+            "presentation": {
+                "showReuseMessage": false,
+                "clear": true
+            }
+        },
+        {
+            "command": "cargo",
+            "args": [
+                "espflash",
+                "monitor",
+                "--no-stub",
+                "--elf",
+                "${config:tomato.elf}"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "none"
+            },
+            "label": "rust: serial monitor",
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            }
+        },
+        {
+            "type": "cargo",
+            "command": "build",
+            "args": [
+                "--release"
+            ],
+            "problemMatcher": [
+                "$rustc"
+            ],
+            "group": {
+                "kind": "build"
+            },
+            "label": "rust: cargo build"
+        }
+    ]
+}
