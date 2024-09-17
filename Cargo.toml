@@ -34,7 +34,6 @@ esp-idf-svc = { git="https://github.com/esp-rs/esp-idf-svc.git", branch="master"
     "critical-section",
     "embassy-time-driver",
 ] }
-smol = "2.0.0"
 anyhow = "1.0.81"
 futures-lite = "2.3.0"
 libc = "0.2"

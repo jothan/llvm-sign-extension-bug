@@ -47,14 +47,24 @@ async fn run_app() -> anyhow::Result<()> {
         timer_service,
     )?;
 
-    wifi.set_configuration(&esp_idf_svc::wifi::Configuration::Client(
+    const WOKWI: bool = false;
+
+    let cfg = if WOKWI {
+        ClientConfiguration {
+            ssid: "Wokwi-GUEST".try_into().unwrap(),
+            auth_method: esp_idf_svc::wifi::AuthMethod::None,
+            ..Default::default()
+        }
+    } else {
         ClientConfiguration {
             ssid: include_str!("../wifi-ssid").try_into().unwrap(),
             password: include_str!("../wifi-pass").try_into().unwrap(),
             auth_method: esp_idf_svc::wifi::AuthMethod::WPAWPA2Personal,
             ..Default::default()
-        },
-    ))?;
+        }
+    };
+
+    wifi.set_configuration(&esp_idf_svc::wifi::Configuration::Client(cfg))?;
 
     log::info!("Wi-Fi starting");
     wifi_disable_powersave()?;
@@ -72,8 +82,10 @@ async fn run_app() -> anyhow::Result<()> {
     .await?;
     log::info!("Wi-Fi connected");
 
-    let name = Name::try_from("ipv6.google.com").unwrap();
-    log::info!("r: {:?}", resolve_ipv6(&name).await);
+    let name = Name::try_from("google.com").unwrap();
+    // WOKWI filters AAAA records ??
+    log::info!("v6: {:?}", resolve_ipv6(&name).await);
+    log::info!("v4: {:?}", resolve_ipv4(&name).await);
 
     futures_lite::future::poll_fn(|_| std::task::Poll::Pending::<()>).await;
     Ok(())
