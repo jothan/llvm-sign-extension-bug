@@ -40,5 +40,8 @@ libc = "0.2"
 async-oneshot = "0.5.9"
 thiserror = "1.0.59"
 
+[patch.crates-io]
+esp-idf-sys = { git="https://github.com/esp-rs/esp-idf-sys.git", branch="master" }
+
 [build-dependencies]
 embuild = "0.32"

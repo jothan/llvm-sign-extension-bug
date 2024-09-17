@@ -104,7 +104,7 @@ pub fn init() -> anyhow::Result<esp_idf_svc::io::vfs::MountedEventfs> {
     Ok(esp_idf_svc::io::vfs::MountedEventfs::mount(5)?)
 }
 
-pub fn extract_ip(value: &sys::esp_ip_addr_t) -> Option<IpAddr> {
+pub fn extract_ip(value: &sys::ip_addr_t) -> Option<IpAddr> {
     match value.type_ as _ {
         sys::ESP_IPADDR_TYPE_V4 => Some(
             Ipv4Addr::from(u32::from_be(unsafe { value.u_addr.ip4.addr }).to_be_bytes()).into(),
@@ -132,26 +132,7 @@ pub fn wifi_disable_powersave() -> Result<(), EspError> {
     esp!(unsafe { sys::esp_wifi_set_ps(sys::wifi_ps_type_t_WIFI_PS_NONE) })
 }
 
-const LWIP_DNS_ADDRTYPE_IPV4: u8 = 0;
-const LWIP_DNS_ADDRTYPE_IPV6: u8 = 1;
-
-extern "C" {
-    fn dns_gethostbyname_addrtype(
-        hostname: *const c_char,
-        addr: *mut sys::esp_ip_addr_t,
-        found: Option<
-            unsafe extern "C" fn(
-                name: *const c_char,
-                ipaddr: Option<NonNull<sys::esp_ip_addr_t>>,
-                callback_arg: *mut c_void,
-            ),
-        >,
-        callback_arg: *mut c_void,
-        dns_addrtype: u8,
-    ) -> sys::err_t;
-}
-
-type IpSender = async_oneshot::Sender<Result<sys::esp_ip_addr_t, Error>>;
+type IpSender = async_oneshot::Sender<Result<sys::ip_addr_t, Error>>;
 
 #[derive(thiserror::Error, Debug, Clone, Copy)]
 pub enum Error {
@@ -183,7 +164,7 @@ impl TryFrom<String> for Name {
 }
 
 pub async fn resolve_ipv4(name: &Name) -> Result<Ipv4Addr, Error> {
-    let ip = resolve(&name.0, LWIP_DNS_ADDRTYPE_IPV4).await?;
+    let ip = resolve(&name.0, sys::LWIP_DNS_ADDRTYPE_IPV4 as _).await?;
     match ip {
         IpAddr::V4(ip) => Ok(ip),
         _ => Err(Error::LookupError),
@@ -191,7 +172,7 @@ pub async fn resolve_ipv4(name: &Name) -> Result<Ipv4Addr, Error> {
 }
 
 pub async fn resolve_ipv6(name: &Name) -> Result<Ipv6Addr, Error> {
-    let ip = resolve(&name.0, LWIP_DNS_ADDRTYPE_IPV6).await?;
+    let ip = resolve(&name.0, sys::LWIP_DNS_ADDRTYPE_IPV6 as _).await?;
     match ip {
         IpAddr::V6(ip) => Ok(ip),
         _ => Err(Error::LookupError),
@@ -221,19 +202,19 @@ async fn resolve(name: &CStr, addr_type: u8) -> Result<IpAddr, Error> {
 
 #[no_mangle]
 unsafe fn resolve_raw(name: *const c_char, addr_type: u8, tx: IpSender) {
-    let mut ip: sys::esp_ip_addr_t = Default::default();
+    let mut ip: sys::ip_addr_t = Default::default();
     let tx: *mut IpSender = Box::into_raw(Box::new(tx));
     let ret = unsafe {
-        dns_gethostbyname_addrtype(name, &mut ip, Some(cb), tx as *mut c_void, addr_type)
+        sys::dns_gethostbyname_addrtype(name, &mut ip, Some(cb), tx as *mut c_void, addr_type)
     };
 
     unsafe extern "C" fn cb(
         _name: *const c_char,
-        ipaddr: Option<NonNull<sys::esp_ip_addr_t>>,
+        ipaddr: *const sys::ip_addr_t,
         callback_arg: *mut c_void,
     ) {
         let mut tx = unsafe { Box::from_raw(callback_arg as *mut IpSender) };
-        let ipaddr = ipaddr
+        let ipaddr = NonNull::new(ipaddr.cast_mut())
             .map(|ip| unsafe { ip.read() })
             .ok_or(Error::LookupError);
         let _ = tx.send(ipaddr);
